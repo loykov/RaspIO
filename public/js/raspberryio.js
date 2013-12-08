@@ -58,13 +58,7 @@ var site = {
 			}
 		},
 		pwm: function(){
-			var $slider1 = $(".pwm-slider");
-			var pin1 = $slider1.data('pin');
-			$slider1.change(function() {
-				console.log("slided", $(this).val(), pin1);
-				
-				$("#container").trigger('sliderChanged', [pin1,$(this).val()]);
-			});
+			$("#container").trigger('siteChange', ["pwm"]);
 		}
 	}
 }
@@ -95,6 +89,11 @@ jQuery(function($){
 		console.log(gpio_data);
 		GPIOs.reDrawAll();
 	});
+	socket.on('sliderChanged', function(gpio_data){
+		console.log('sliderChanged:',gpio_data);
+		$('#slider'+gpio_data['pin']).val(gpio_data['pin_value']);
+		$('#sliderValue'+gpio_data['pin']).val(gpio_data['pin_value']);
+	});
 	$("#content").on('click', '#close_all_gpio', function() {
 		console.log("close all");
 		socket.emit('close gpios', true);
@@ -106,8 +105,45 @@ jQuery(function($){
 	});
 	$(document).on('sliderChanged','#container',function(event, param1, param2) {
 		console.log('sliderChanger  pin: ',param1,"value",param2);
+		$('#sliderValue'+param1).val(param2);
 		socket.emit('changePwmPin',{pin_value:param2,pin:param1});
-	})
+	});
+	var drawPwmPin = function(pin) {
+		var $pwmPin = $("<div />");
+		$pwmPin.attr('id','pwmPin'+pin).addClass('pwmPin').data('pin',pin).html('<button class="pwmOnOff" data-state="'+pins[pin]["on"]+'">'+pins[pin]["name"]+'</button><br><input type="text" id="sliderValue'+pin+'" value="'+pins[pin]["val"]+'"><input type="range" id="slider'+pin+'" name="slider'+pin+'" class="pwm-slider" data-pin="'+pin+'" value="'+pins[pin]["val"]+'" min="0" max="1" step="0.001" width="95%" />');
+		$("#pwmPins").append($pwmPin);
+		var $slider = $("#pwmPin"+pin+" .pwm-slider");
+		$slider.change(function() {
+			pin = $(this).data('pin');
+			console.log("slided", $(this).val(), pin);
+			$("#container").trigger('sliderChanged', [pin,$(this).val()]);
+		});
+
+	};
+	
+	$(document).on('siteChange','#container',function(event, siteName){
+		console.log("siteChange event",siteName);
+		socket.emit('init gpio', true);
+		if(siteName == "pwm") {
+			var $pinSelect = $('#pinSelect');
+			for (pin in pins) {
+				if(pins[pin]["pwm"]) {
+					if(!pins[pin]["on"]){
+						$pinSelect.append('<option value="'+pin+'">PIN '+pin+' - '+pins[pin]["name"]+'</option>');
+					} else {
+						drawPwmPin(pin);
+					}
+				}
+			}
+			$('.addPin').click(function(){
+				var pin_number = $("#pinSelect option:selected").val();
+				$("#pinSelect option:selected").attr('disabled','disabled').remove();
+				console.log("addPin clicked",pin_number);
+				socket.emit('addPwmPin',{pin:pin_number});
+				drawPwmPin(pin_number);
+			});
+		}
+	});
 	/* dashboard END */
 	site.initSite();
 });

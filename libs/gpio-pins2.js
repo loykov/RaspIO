@@ -25,7 +25,8 @@ module.exports = (function(){
 			"dir":"output",
 			"on":false,
 			"val":0,
-			"pwm": true
+			"pwm": true,
+			"pwm_pin": 4
 		},
 		11:{
 			"name":"GPIO 17",
@@ -40,35 +41,40 @@ module.exports = (function(){
 			"dir":"output",
 			"on":false,
 			"val":0,
-			"pwm": true
+			"pwm": true,
+			"pwm_pin": 18
 		},
 		13:{
 			"name":"GPIO 21 - PCM_DOUT",
 			"dir":"output",
 			"on":false,
 			"val":0,
-			"pwm": true
+			"pwm": true,
+			"pwm_pin": 21
 		},
 		15:{
 			"name":"GPIO 22",
 			"dir":"output",
 			"on":false,
 			"val":0,
-			"pwm": true
+			"pwm": true,
+			"pwm_pin": 22
 		},
 		16:{
 			"name":"GPIO 23",
 			"dir":"output",
 			"on":false,
 			"val":0,
-			"pwm": true
+			"pwm": true,
+			"pwm_pin": 23
 		},
 		18:{
 			"name":"GPIO 24",
 			"dir":"output",
 			"on":false,
 			"val":0,
-			"pwm": true
+			"pwm": true,
+			"pwm_pin": 24
 		},
 		19:{
 			"name":"GPIO 10 - MOSI",
@@ -89,7 +95,8 @@ module.exports = (function(){
 			"dir":"output",
 			"on":false,
 			"val":0,
-			"pwm": true
+			"pwm": true,
+			"pwm_pin": 25
 		},
 		23:{
 			"name":"GPIO 11 - SCLK",
@@ -137,7 +144,7 @@ module.exports = (function(){
 	};
 	
 	var initPins = function(inited) {
-		async.forEach(Object.keys(pins), initPin.apply(pins, [pin, callback]), function() {
+		async.forEach(Object.keys(pins), initPin, function() {
 			inited.call();
 		});
 	};
@@ -152,6 +159,8 @@ module.exports = (function(){
 				console.log("initPin complete");
 				callback();
 			});
+		} else {
+			callback();
 		}
 	};
 	var closePin = function(pin, callback) {

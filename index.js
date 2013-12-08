@@ -18,6 +18,8 @@ var express = require('express'),
 	*/
 	server.listen(2013);
 	console.log("Server started at:		http://192.168.1.184:2013/");
+
+	//pins.initPins();
 	
 	app.get('/', function(req,res){
 		res.sendfile(static_dir + 'index.html');
@@ -91,8 +93,14 @@ var express = require('express'),
 		socket.on('changePwmPin',function(data) {
 			console.log("changePwm data:",data);
 			pins.pwm({"pin":parseInt(data.pin,10),"pin_value":data.pin_value}, function() {});
-			console.log('changePwmPin', data);
+			//console.log('changePwmPin', data);
+			socket.broadcast.emit('sliderChanged',{"pin":data.pin,"pin_value":data.pin_value});
 		});
+		
+		socket.on('addPwmPin',function(dt){
+			pins['pins'][dt['pin']]['on'] = true;
+			socket.emit('init gpio data', pins['pins']);
+		})
 
 		/*
 		socket.on('send message', function(data) {
