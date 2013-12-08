@@ -1,0 +1,157 @@
+header {
+	display: block;
+	position: fixed;
+	width: 100%;
+	height: 42px;
+	top: 0;
+	left: 0;
+	right: 0;
+	color: #fff;
+	border-bottom: 1px solid #333;
+	background-color: #314159;
+	z-index: 2;
+}
+#menu {
+
+}
+.menu {
+	display: block;
+	position: relative;
+	float: left;
+	top: 0;
+	margin: 0;
+	padding: 0;
+	height: 42px;
+	font-size: 18px;
+	line-height: 42px;
+	padding: 0 12px;
+	cursor: pointer;
+}
+.active_menu {
+	background: maroon;
+	font-weight: bolder;
+	font-size: 22px;
+}
+.menu:hover {
+	background: maroon;
+}
+.menu_dashboard {
+	padding-left: 40px;
+	font-size: 24px;
+	font-weight: bold;
+}
+
+.raspberry_io {
+	position: absolute;
+	display: block;
+	left: 0;
+	top: 10px;
+	width: 38px;
+	height: 48px;
+	background: transparent url('../img/sprite.png') no-repeat left top;
+}
+
+#loading {
+	background: transparent url('../img/ajax_load.gif') no-repeat left top;
+	display: block;
+	position: absolute;
+	top: 60px;
+	width: 25px;
+	height: 25px;
+}
+
+#content {
+	position: relative;
+	top: 42px;
+	height: 100%;
+	width: 100%;
+}
+#content h1 {
+	position: fixed;
+	top: 32px;
+	font-size: 17px;
+	left: 0;
+	padding: 3px 10px 6px 42px;
+	background: rgba(162, 162, 162, 0.17);
+	border-radius: 0px 0px 10px 0px;
+	color: #314159;
+	text-shadow: 1px 1px 0px #eee;
+	z-index: 2;
+}
+#content #container {
+	margin-top: 25px;
+	margin-left: auto;
+	margin-right: auto;
+}
+footer {
+	display: block;
+	position: fixed;
+	bottom: 3px;
+	right: 3px;
+}
+/* dashboard */
+
+#pi_gpio {
+	display: block;
+	position: relative;
+	width: 683px;
+	height: 468px;
+	background-image: url('../img/pi_gpio.png');
+	margin: 10px auto;
+}
+
+.gpio {
+	display: block;
+	position: absolute;
+	width: 340px;
+	height: 33px;
+	cursor: pointer;
+}
+.gpio:hover {
+	background: transparent;
+	color: #000;
+	border: 1ps solid red;
+}
+.gpio_on {
+	background-color: #428d1d;
+	color: #fff;
+}
+.gpio_on:hover {
+	background: #428d1d;
+	border: 1px dashed #000;
+	z-index: 3;
+}
+.status_led {
+	display: none;
+}
+.gpio_on .status_led {
+	display: block;
+}
+
+.gpio_left {
+	left: 0px;
+}
+.gpio_right {
+	right: 0px;
+}
+
+.pwm-slider{
+	width: 100%;
+	height: 52px;
+}
+
+/* Start Sprite Master CSS */
+.sprite,.bullet_black,.bullet_blue,.bullet_delete,.bullet_error,.bullet_green,.bullet_orange,.bullet_red,.bullet_white,.bullet_wrench,.bullet_yellow,.pi_math{display: block;background-repeat: no-repeat;background-image: url('../img/sprite.png');}
+.sprite{background-position:0px 0px;width:225px;height:52px;}
+.bullet_black{background-position:-225px 0px;width:32px;height:32px;}
+.bullet_blue{background-position:-257px 0px;width:32px;height:32px;}
+.bullet_delete{background-position:-289px 0px;width:32px;height:32px;}
+.bullet_error{background-position:-321px 0px;width:32px;height:32px;}
+.bullet_green{background-position:-353px 0px;width:32px;height:32px;}
+.bullet_orange{background-position:-385px 0px;width:32px;height:32px;}
+.bullet_red{background-position:-417px 0px;width:32px;height:32px;}
+.bullet_white{background-position:-449px 0px;width:32px;height:32px;}
+.bullet_wrench{background-position:-225px -32px;width:32px;height:32px;}
+.bullet_yellow{background-position:-257px -32px;width:32px;height:32px;}
+.pi_math{background-position:-289px -32px;width:32px;height:32px;}
+/* End Sprite Master CSS */

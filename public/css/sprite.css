@@ -1,0 +1,16 @@
+
+/* Start Sprite Master CSS */
+.sprite,.bullet_black,.bullet_blue,.bullet_delete,.bullet_error,.bullet_green,.bullet_orange,.bullet_red,.bullet_white,.bullet_wrench,.bullet_yellow,.pi_math{display: block;background-repeat: no-repeat;background-image: url('sprite.png');}
+.sprite{background-position:0px 0px;width:225px;height:52px;}
+.bullet_black{background-position:-225px 0px;width:32px;height:32px;}
+.bullet_blue{background-position:-257px 0px;width:32px;height:32px;}
+.bullet_delete{background-position:-289px 0px;width:32px;height:32px;}
+.bullet_error{background-position:-321px 0px;width:32px;height:32px;}
+.bullet_green{background-position:-353px 0px;width:32px;height:32px;}
+.bullet_orange{background-position:-385px 0px;width:32px;height:32px;}
+.bullet_red{background-position:-417px 0px;width:32px;height:32px;}
+.bullet_white{background-position:-449px 0px;width:32px;height:32px;}
+.bullet_wrench{background-position:-225px -32px;width:32px;height:32px;}
+.bullet_yellow{background-position:-257px -32px;width:32px;height:32px;}
+.pi_math{background-position:-289px -32px;width:32px;height:32px;}
+/* End Sprite Master CSS */

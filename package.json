@@ -1,0 +1,12 @@
+{
+	"name":"raspberryIO",
+	"version":"0.0.2",
+	"private":"true",
+	"dependencies":{
+		"async":"0.2.9",
+		"socket.io":"0.9.16",
+		"node-static":"0.7.2",
+		"express":"3.4.4",
+		"pi-gpio":"0.0.2"
+	}
+}
