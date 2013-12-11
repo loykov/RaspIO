@@ -4,7 +4,6 @@ var express = require('express'),
 	io = require('socket.io').listen(server),
 	gpio = require('pi-gpio'),
 	pins = require('./libs/gpio-pins2'),
-	close = require('./libs/close'),
 	static_dir = __dirname+'/static/';
 	
 	//TODO! users to modules

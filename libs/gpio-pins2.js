@@ -238,19 +238,14 @@ module.exports = (function(){
 	};
 	
 	var turnOnOff = function(pin, callback) {
-		if(pins[pin]["on"] && pins[pin]["dir"] == "output"){
-			if(pins[pin]["on"]["val"] == 0){
-				gpio.write(pin, 1, function(err){
-					pins[pin]["on"]["val"] = 1;
-					callback();
-				});
-			} else {
-				gpio.write(pin, 0, function(err){
-					pins[pin]["on"]["val"] = 0;
-					callback();
-				});
-			}
-		}	
+		if(pins[pin]["on"] && pins[pin]['pintype'] == PIN_DIGITAL && pins[pin]["dir"] == "output"){
+			gpio.write(pin, 1-pins[pin]["val"], function(err){
+				pins[pin]["val"] = 1-pins[pin]["val"];
+				callback();
+			});
+		} else {
+			callback(false);
+		}
 	};
 	
 	var setPinDirection = function(pin, direction) {
@@ -280,6 +275,7 @@ module.exports = (function(){
         pwm: pwm,
         releasePwm: releasePwm,
         closePin: closePin,
-        closeAll: closeAll
+        closeAll: closeAll,
+        turnOnOff: turnOnOff
     };
 }());
