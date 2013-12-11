@@ -8,122 +8,80 @@ module.exports = (function(){
     var pins = {
 		3:{
 			"name":"GPIO 2 - SDA",
-			"dir":"output",
-			"on":false,
-			"val":0,
 			"pwm": false
 		},
 		5:{
 			"name":"GPIO 3 - SCL",
-			"dir":"output",
-			"on":false,
-			"val":0,
 			"pwm": false
 		},
 		7:{
 			"name":"GPIO 4 - GPCLKO",
-			"dir":"output",
-			"on":false,
-			"val":0,
 			"pwm": true,
 			"pwm_pin": 4
 		},
 		11:{
 			"name":"GPIO 17",
-			"dir":"output",
-			"on":false,
-			"val":0,
 			"pwm": true,
 			"pwm_pin": 17
 		},
 		12:{
 			"name":"GPIO 18 - PCM_CLK",
-			"dir":"output",
-			"on":false,
-			"val":0,
 			"pwm": true,
 			"pwm_pin": 18
 		},
 		13:{
 			"name":"GPIO 21 - PCM_DOUT",
-			"dir":"output",
-			"on":false,
-			"val":0,
 			"pwm": true,
 			"pwm_pin": 21
 		},
 		15:{
 			"name":"GPIO 22",
-			"dir":"output",
-			"on":false,
-			"val":0,
 			"pwm": true,
 			"pwm_pin": 22
 		},
 		16:{
 			"name":"GPIO 23",
-			"dir":"output",
-			"on":false,
-			"val":0,
 			"pwm": true,
 			"pwm_pin": 23
 		},
 		18:{
 			"name":"GPIO 24",
-			"dir":"output",
-			"on":false,
-			"val":0,
 			"pwm": true,
 			"pwm_pin": 24
 		},
 		19:{
 			"name":"GPIO 10 - MOSI",
-			"dir":"output",
-			"on":false,
-			"val":0,
 			"pwm": false
 		},
 		21:{
 			"name":"GPIO 9 - MISO",
-			"dir":"output",
-			"on":false,
-			"val":0,
 			"pwm": false
 		},
 		22:{
 			"name":"GPIO 25",
-			"dir":"output",
-			"on":false,
-			"val":0,
 			"pwm": true,
 			"pwm_pin": 25
 		},
 		23:{
 			"name":"GPIO 11 - SCLK",
-			"dir":"output",
-			"on":false,
-			"val":0,
 			"pwm": false
 		},
 		24:{
 			"name":"GPIO 8 - CE0",
-			"dir":"output",
-			"on":false,
-			"val":0,
 			"pwm": false
 		},
 		26:{
 			"name":"GPIO 7 - CE1",
-			"dir":"output",
-			"on":false,
-			"val":0,
 			"pwm": false
 		}
 	};
 	
 	var init = function() {
 		for(pin in pins) {
-			pins[pin].pintype = PIN_DIGITAL; 
+			pins[pin].pinmode 	= PIN_DIGITAL;
+			pins[pin].dir 		= 'input';
+			pins[pin].on 		= false;
+			pins[pin].val 		= 0;
 			if(pin % 2 == 0) {
 				pins[pin].pos = "right";
 				pins[pin].top = (pin-8)/2*33+119; //position for background
@@ -139,15 +97,15 @@ module.exports = (function(){
 		console.log(pin + "pin changed. value: " + this[pin]["val"]);
 	};
 	
-	var changePinType = function(pin, type, callback){
+	var changePinMode = function(pin, type, callback){
 		if (type == PIN_DIGITAL || type == PIN_PWM){
-			if (pins[pin]['pintype'] != type) {
+			if (pins[pin]['pinmode'] != type) {
 				closePin(pin, function() {
-					pins[pin]['pintype'] = type;
+					pins[pin]['pinmode'] = type;
 					callback();
 				});
 			} else {
-				pins[pin]['pintype'] = type;
+				pins[pin]['pinmode'] = type;
 				callback();
 			}
 		} else {
@@ -178,7 +136,7 @@ module.exports = (function(){
 	var closePin = function(pin, callback) {
 		console.log("closePin running at pin: ",pin);
 		if(pins[pin]["on"]){
-			if(pins[pin]['pintype'] == PIN_DIGITAL){
+			if(pins[pin]['pinmode'] == PIN_DIGITAL){
 				if(pins[pin]["dir"] == "output"){
 					gpio.write(pin, 0, function(err){
 						if(err) {
@@ -201,7 +159,7 @@ module.exports = (function(){
 						callback();
 					});				
 				}
-			} else if (pins[pin]['pintype'] == PIN_PWM) {
+			} else if (pins[pin]['pinmode'] == PIN_PWM) {
 				pwm({pin:pin,pin_value:0},function() {
 					pins[pin]["val"] = 0;
 					releasePwm(pin, function() {
@@ -238,9 +196,9 @@ module.exports = (function(){
 	};
 	
 	var turnOnOff = function(pin, callback) {
-		if(pins[pin]["on"] && pins[pin]['pintype'] == PIN_DIGITAL && pins[pin]["dir"] == "output"){
-			gpio.write(pin, 1-pins[pin]["val"], function(err){
-				pins[pin]["val"] = 1-pins[pin]["val"];
+		if(pins[pin]['on'] && pins[pin]['pinmode'] == PIN_DIGITAL && pins[pin]['dir'] == 'output'){
+			gpio.write(pin, 1-pins[pin]['val'], function(err){
+				pins[pin]['val'] = 1-pins[pin]['val'];
 				callback();
 			});
 		} else {
@@ -254,16 +212,16 @@ module.exports = (function(){
 	
 	/* options kötelező: pin, pin_value */
 	var pwm = function(options, callback) {
-		pins[options.pin]["val"] = options.pin_value;
-		piblaster.setPwm(pins[options.pin]["pwm_pin"],options.pin_value);
+		pins[options.pin]['val'] = options.pin_value;
+		piblaster.setPwm(pins[options.pin]['pwm_pin'],options.pin_value);
 		callback.call();
 	};
 	
 	var releasePwm = function(pin, callback) {
-		pins[pin]["val"] = 0;
-		pins[pin]["on"] = false;
+		pins[pin]['val'] = 0;
+		pins[pin]['on'] = false;
 		piblaster.releasePwm(pin);
-		if(callback !== undefined){
+		if(typeof callback !== undefined){
 			callback();
 		}
 	};
