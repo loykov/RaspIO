@@ -165,7 +165,7 @@ module.exports = (function(){
 	};
 	var closePin = function(pin, callback) {
 		console.log("closePin running at pin: ",pin);
-		if(this.pins[pin]["on"]){
+		if(pins[pin]["on"]){
 			if(this.pins[pin]["dir"] == "output"){
 				gpio.write(pin, 0, function(err){
 					if(err) {
@@ -185,24 +185,30 @@ module.exports = (function(){
 				gpio.close(pin,callback);				
 			}
 		} else {
+			console.log(pin+" already closed!");
 			callback();
 		}
 	};
 	var closeOne = function(pin, callback) {
 		console.log("closeOne pin: ", pin);
 		//eval("this.closePin(pin, callback)");
-		//pins.closePin(pin, callback);
+		closePin(pin,callback);
 		//return true;
 		//console.dir(this);
 		//pins.setPinDirection(11,2);
-		callback();
+		//callback();
 	};
 	var closeAll = function(afterClose) {
 		//console.log("closeAll function");
-		async.each(Object.keys(this.pins), closeOne.apply(this, [pin, callback])
+		async.each(Object.keys(this.pins), closeOne, function() {
+			afterClose();
+		});
+		/*
+		async.forEach(Object.keys(this.pins), closeOne.apply(this, [pin, this.callback])
 			, function() {
 			afterClose();
 		});
+		*/
 	};
 	
 	var turnOnOff = function(pin, callback) {
@@ -247,6 +253,7 @@ module.exports = (function(){
         pins: pins,
         pwm: pwm,
         releasePwm: releasePwm,
-        closePin: closePin 
+        closePin: closePin,
+        closeAll: closeAll
     };
 }());

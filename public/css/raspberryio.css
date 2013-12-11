@@ -110,7 +110,7 @@ footer {
 .gpio:hover {
 	background: transparent;
 	color: #000;
-	border: 1ps solid red;
+	border: 1px solid red;
 }
 .gpio_on {
 	background-color: transparent;
