@@ -161,11 +161,13 @@ var GPIOs = {
 		}
 	},
 	reDraw: function(pin) {
-		console.log("reDraw pin:",pin);
+		//console.log("reDraw pin:",pin);
 		var $pin_content = $("<div />").addClass("status_led");
-		var $pin = $("<div />").addClass("gpio").addClass("gpio_"+pin).addClass("gpio_"+this.pins[pin]['pos']).css({top:this.pins[pin]["top"]}).attr('data-pin',pin).click(this.gpioClick);
+		var $pin = $("<div />").addClass("gpio").addClass("gpio_"+pin).addClass("gpio_"+this.pins[pin]['pos']).css({top:this.pins[pin]["top"]}).attr('data-pin',pin);
 		if(this.pins[pin]["on"]){
 			$pin.addClass('gpio_on');
+		} else {
+			$pin.one('click',this.gpioClick);
 		}
 		if(this.pins[pin]["pwm"]) {
 			$pin.append("<span>PWM</span>");
@@ -188,7 +190,7 @@ var GPIOs = {
 			pin: pin,
 			time: new Date()
 		});
-		console.log("click pin: ",pin);
+		//console.log("click pin: ",pin);
 		
 		// *** GPIOs.turnOn(pin);
 	},
