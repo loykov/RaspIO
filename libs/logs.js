@@ -1,3 +1,5 @@
+/* TEST FILE */
+
 module.exports = {
 	log: function () {
 		var array = [">>> Message from server: "];

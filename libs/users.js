@@ -1,3 +1,5 @@
+/* TEST FILE */
+
 module.exports = {
 	users : {},
 	addUser: function(name, socket, callback) {

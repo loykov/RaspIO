@@ -1,3 +1,5 @@
+/* TEST FILE */
+
 var async = require('async');
 var gpio = require('pi-gpio');
 
