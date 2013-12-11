@@ -213,3 +213,5 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+RaspIO.esproj/Project.espressostorage
+RaspIO.esproj/user.benceberenyi.espressostorage
