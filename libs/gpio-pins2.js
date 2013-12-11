@@ -139,8 +139,20 @@ module.exports = (function(){
 		console.log(pin + "pin changed. value: " + this[pin]["val"]);
 	};
 	
-	var changePinType = function(pin, type){
-		
+	var changePinType = function(pin, type, callback){
+		if (type == PIN_DIGITAL || type == PIN_PWM){
+			if (pins[pin]['pintype'] != type) {
+				closePin(pin, function() {
+					pins[pin]['pintype'] = type;
+					callback();
+				});
+			} else {
+				pins[pin]['pintype'] = type;
+				callback();
+			}
+		} else {
+			callback(false);
+		}
 	};
 	
 	var initPins = function(inited) {
@@ -166,23 +178,37 @@ module.exports = (function(){
 	var closePin = function(pin, callback) {
 		console.log("closePin running at pin: ",pin);
 		if(pins[pin]["on"]){
-			if(this.pins[pin]["dir"] == "output"){
-				gpio.write(pin, 0, function(err){
-					if(err) {
-						console.log("ERROR: ",err," when try to set 0 the pin: ",pin);
-						callback(err);
-						return false;
-					}
-					this.pins[pin]["val"] = 0;
-					console.log("Pin " + pin + " Set value: 0");
-					console.log("Pin closed: "+pin);
-					this.pins[pin]["on"] = false;
-					gpio.close(pin,callback);
+			if(pins[pin]['pintype'] == PIN_DIGITAL){
+				if(pins[pin]["dir"] == "output"){
+					gpio.write(pin, 0, function(err){
+						if(err) {
+							console.log("ERROR: ",err," when try to set 0 the pin: ",pin);
+							callback(err);
+							return false;
+						}
+						pins[pin]["val"] = 0;
+						console.log("Pin " + pin + " Set value: 0");
+						gpio.close(pin,function() {
+							console.log("Pin closed: "+pin);
+							pins[pin]["on"] = false;
+							callback();
+						});
+					});
+				} else {
+					gpio.close(pin,function() { 
+						console.log("Pin closed: "+pin);
+						pins[pin]["on"] = false;
+						callback();
+					});				
+				}
+			} else if (pins[pin]['pintype'] == PIN_PWM) {
+				pwm({pin:pin,pin_value:0},function() {
+					pins[pin]["val"] = 0;
+					releasePwm(pin, function() {
+						pins[pin]["on"] = false;
+						callback();
+					});
 				});
-			} else {
-				console.log("Pin closed: "+pin);
-				this.pins[pin]["on"] = false;
-				gpio.close(pin,callback);				
 			}
 		} else {
 			console.log(pin+" already closed!");
