@@ -88,18 +88,85 @@ var express = require('express'),
 				socket.emit('changed gpio data', pins);
 			});
 		});
+		
+		socket.on('closePin',function(data) {
+			pins.closePin(data.pin, function() {
+				socket.broadcast.emit('gpioChange',{"pin":data.pin,"pin_data":pins.pins[data.pin]});
+			});
+		});
+		
+		socket.on('gpioChange',function(data) {
+			if(pins.pins[data.pin]["on"]){
+				console.log(pin,"KI KELL KAPCSOLNI!");
+				pins.closePin(data.pin, function() {
+					socket.emit('gpioChanged',{"pin":data.pin,"pin_data":pins.pins[data.pin]});
+				});
+			} else {
+				console.log(pin,"BE KELL KAPCSOLNI!");
+				if (data.pin_mode == 1){
+					pins.setPinMode(data.pin, 1, function() {
+						pins.setPinDirection(data.pin, "input", function() {
+							pins.openPin(data.pin, function() {
+								socket.emit('gpioChanged',{"pin":data.pin,"pin_data":pins.pins[data.pin]});
+							});
+						});
+					});
+				} else if (data.pin_mode == 2){
+					pins.setPinMode(data.pin, 1, function() {
+						pins.setPinDirection(data.pin, "output", function() {
+							pins.openPin(data.pin, function() {
+								socket.emit('gpioChanged',{"pin":data.pin,"pin_data":pins.pins[data.pin]});
+							});
+						});
+					});
+				} else if (data.pin_mode == 3){
+					pins.setPinMode(data.pin, 2, function() {
+						pins.pins[data.pin]['on'] = true;
+						socket.emit('gpioChanged',{"pin":data.pin,"pin_data":pins.pins[data.pin]});
+					});
+				}
+			}
+			//socket.emit('gpioChanged',{"pin":data.pin,"pin_data":pins.pins[data.pin]});
+		});
 
 		socket.on('changePwmPin',function(data) {
 			console.log("changePwm data:",data);
-			pins.pwm({"pin":parseInt(data.pin,10),"pin_value":data.pin_value}, function() {});
+			if(data.slider_mode == "1"){
+				pins.pwm({"pin":parseInt(data.pin,10),"pin_value":data.pin_value}, function() {});
+			} else if (data.slider_mode == "2") {
+				pins.digitalPulse(data.pin,data.pin_value);
+			}
 			//console.log('changePwmPin', data);
 			socket.broadcast.emit('sliderChanged',{"pin":data.pin,"pin_value":data.pin_value});
 		});
 		
 		socket.on('addPwmPin',function(dt){
-			pins['pins'][dt['pin']]['on'] = true;
-			socket.emit('init gpio data', pins['pins']);
-		})
+			console.log('addPwmPin dt:',dt);
+			pins.setPinMode(dt.pin, 2, function() {
+				pins.pins[dt.pin]['on'] = true;		
+				socket.emit('init gpio data', pins['pins']);
+			});
+		});
+		
+		socket.on('startMotor',function(dt){
+			console.log('startMotor!!!');
+			pins.startMotor();
+		});
+		
+		socket.on('stopMotor',function(dt){
+			console.log('stopMotor!!!');
+			pins.stopMotor();
+		});
+		
+		socket.on('reverseMotor',function(dt){
+			console.log('reverseMotor!!!');
+			pins.reverseMotor();
+		});
+		
+		socket.on('setMotorSpeed',function(dt){
+			console.log('SetMotorSpeed:',dt);
+			pins.setMotorSpeed(dt);
+		});
 
 		/*
 		socket.on('send message', function(data) {
