@@ -193,11 +193,11 @@ module.exports = (function(){
 	
 	var initPin = function(pin, callback) {
 		console.log("initPin running");
-		if(!this.pins[pin]["on"]){
+		if(!pins[pin]["on"] && pins[pin]["pinmode"]==PIN_DIGITAL){
 			
-			gpio.open(pin, this.pins[pin]["dir"], function(err, callback){
+			gpio.open(pin, pins[pin]["dir"], function(err, callback){
 				//if(err) return console.error(err);
-				this.pins[pin]["on"] = true;
+				pins[pin]["on"] = true;
 				console.log("initPin complete");
 				callback();
 			});
@@ -218,6 +218,16 @@ module.exports = (function(){
 			callback();
 		}
 	};
+	
+	var openDigitalOut = function(pin, callback) {
+		setPinMode(pin,PIN_DIGITAL, function() {
+			setPinDirection(pin,"output",function() {
+				openPin(pin, function() {
+					callback.call();
+				});
+			});
+		});
+	}
 	
 	var closePin = function(pin, callback) {
 		console.log("closePin running at pin: ",pin);
@@ -282,6 +292,14 @@ module.exports = (function(){
 		*/
 	};
 	
+	var triggerPin = function(pin, callback) {
+		gpio.write(pin,1,function(err) {
+			gpio.write(pin,0,function(err) {
+				callback.call();
+			})
+		});
+	}
+	
 	var turnOnOff = function(pin, callback) {
 		if(pins[pin]['on'] && pins[pin]['pinmode'] == PIN_DIGITAL && pins[pin]['dir'] == 'output'){
 			gpio.write(pin, 1-pins[pin]['val'], function(err){
@@ -331,7 +349,7 @@ module.exports = (function(){
 		pwm({pin:pin,pin_value:value},function() {
 			setTimeout(function() {
 				pwm({pin:pin,pin_value:0},function() {});
-			}, 1);
+			}, 20);
 		});
 	}
 	
@@ -351,7 +369,7 @@ module.exports = (function(){
 		}
 	};
 	
-	/* controlling */
+	/* controlling stepper motor */
 	var step_number;
 	var current_step;
 	var stepper_motor_steps = new Array(1,3,2,6,4,12,8,9);
@@ -419,6 +437,154 @@ console.log(step_number,step,motor_speed,stepper_motor_steps[step]&1?1:0,stepper
 		setPin(15,stepper_motor_steps[step]&8?true:false,function() {callback();});
 	};
 	
+	
+	/* L298N motor controller board */
+
+	var motor_pins = {
+		"pin_A": 18,
+		"pin_B": 16,
+		"pin_C": 11,
+		"pin_D": 7,
+		"value_A": 0,
+		"value_B": 0,
+		"value_C": 0,
+		"value_D": 0
+	};
+
+	var current_angle = "stop";
+	var angle_bits = {
+		"stop": [0,0,0,0],
+		"up": [1,0,1,0],
+		"down": [0,1,0,1],
+		"left": [0,1,1,0],
+		"right": [1,0,0,1],
+		"up-left": [0.5,0,1,0],
+		"up-right": [1,0,0.5,0],
+		"down-left": [0,0.5,0,1],
+		"down-right": [0,1,0,0.5]
+	}
+	
+	var brushed_motor_on = false;
+	var motor_angle = {"up":false,"down":false,"left":false,"right":false};
+
+	var init_brushed_motor = function () {
+		if(!brushed_motor_on) {
+			setPinMode(motor_pins["pin_A"],PIN_PWM,function() {
+				initPin(motor_pins["pin_A"],function() {});
+			});
+			setPinMode(motor_pins["pin_B"],PIN_PWM,function() {
+				initPin(motor_pins["pin_B"],function() {});
+			});
+			setPinMode(motor_pins["pin_C"],PIN_PWM,function() {
+				initPin(motor_pins["pin_C"],function() {});
+			});
+			setPinMode(motor_pins["pin_D"],PIN_PWM,function() {
+				initPin(motor_pins["pin_D"],function() {});
+			});
+		}
+	} 
+
+	var set_brushed_motor = function(on, angle){
+		motor_angle[angle] = on?true:false;
+		if((motor_angle.up && angle == "down" && on) || (motor_angle.down && angle == "up" && on)) {
+			motor_angle.up = false;
+			motor_angle.down = false;
+		}
+		if((motor_angle.left && angle == "right" && on) || (motor_angle.right && angle == "left" && on)) {
+			motor_angle.left = false;
+			motor_angle.right = false;
+		}
+		
+		//console.log(motor_angle);
+		current_angle = "";
+		if(motor_angle.up) { current_angle = "up"; }
+		if(motor_angle.down) { current_angle = "down"; }
+		if(motor_angle.left) { 
+			if(current_angle!=""){ current_angle+="-"; }
+			current_angle += "left"; 
+		}
+		if(motor_angle.right) { 
+			if(current_angle!=""){ current_angle+="-"; }
+			current_angle += "right";
+		}
+		if(current_angle==""){ current_angle="stop"; }
+		
+		motor_pins["value_A"] = angle_bits[current_angle][0];
+		motor_pins["value_B"] = angle_bits[current_angle][1];
+		motor_pins["value_C"] = angle_bits[current_angle][2];
+		motor_pins["value_D"] = angle_bits[current_angle][3];
+		/* MŰKÖDIK ;) LOKÁLIS MIATT KOMMENTEZVE */
+		pwm({pin:motor_pins["pin_A"],pin_value:motor_pins["value_A"]},function() {});
+		pwm({pin:motor_pins["pin_B"],pin_value:motor_pins["value_B"]},function() {});
+		pwm({pin:motor_pins["pin_C"],pin_value:motor_pins["value_C"]},function() {});
+		pwm({pin:motor_pins["pin_D"],pin_value:motor_pins["value_D"]},function() {});
+		console.log(motor_pins["value_A"],motor_pins["value_B"],motor_pins["value_C"],motor_pins["value_D"]);
+	
+	};
+	
+	var set_brushed_motor_by_joystick = function(mov_X,mov_Y){
+		console.log(mov_X,mov_Y);
+		if(Math.abs(mov_X) > 200) {
+			if (mov_X > 0){
+				mov_X = 200;
+			} else {
+				mov_X = -200;
+			}
+		}
+		if(Math.abs(mov_Y) > 200) {
+			if (mov_Y > 0){
+				mov_Y = 200;
+			} else {
+				mov_Y = -200;
+			}
+		}
+		mov_X = mov_X/200;
+		mov_Y = mov_Y/200;
+		//UP
+		if(mov_Y < 0) {
+			mov_A = Math.abs(mov_Y);
+			mov_C = mov_A;
+			mov_B = 0;
+			mov_D = 0;
+			if(mov_X < 0) {
+			// UP & LEFT
+				if(Math.abs(mov_X) > mov_A) {
+					mov_B += Math.abs(mov_A + mov_X);
+					mov_A = 0;
+				} else {
+					mov_A += mov_X;
+				}
+			} else {
+			//UP & RIGHT
+				if(mov_X > mov_C) {
+					mov_D -= mov_C - mov_X;
+					mov_C = 0;
+				} else {
+					mov_C -= mov_X;
+				}
+			}
+		} else {
+			mov_B = mov_Y;
+			mov_D = mov_B;
+			mov_A = 0;
+			mov_C = 0;					
+		}
+		motor_pins["value_A"] = mov_A;
+		motor_pins["value_B"] = mov_B;
+		motor_pins["value_C"] = mov_C;
+		motor_pins["value_D"] = mov_D;
+		pwm({pin:motor_pins["pin_A"],pin_value:mov_A},function() {});
+		pwm({pin:motor_pins["pin_B"],pin_value:mov_B},function() {});
+		pwm({pin:motor_pins["pin_C"],pin_value:mov_C},function() {});
+		pwm({pin:motor_pins["pin_D"],pin_value:mov_D},function() {});
+		return {
+			mov_A: mov_A,
+			mov_B: mov_B,
+			mov_C: mov_C,
+			mov_D: mov_D
+		};
+	}
+	
 	init();
 
     return {
@@ -427,15 +593,20 @@ console.log(step_number,step,motor_speed,stepper_motor_steps[step]&1?1:0,stepper
         digitalPulse: digitalPulse,
         releasePwm: releasePwm,
         openPin: openPin,
+        openDigitalOut: openDigitalOut,
         closePin: closePin,
         closeAll: closeAll,
         setPin: setPin,
+        triggerPin: triggerPin,
         turnOnOff: turnOnOff,
         setPinMode: setPinMode,
         setPinDirection: setPinDirection,
         startMotor: startMotor,
         stopMotor: stopMotor,
         reverseMotor: reverseMotor,
-        setMotorSpeed: setMotorSpeed
+        setMotorSpeed: setMotorSpeed,
+        initBrushedMotor: init_brushed_motor,
+        setBrushedMotor: set_brushed_motor,
+        setBrushedMotorByJoystick: set_brushed_motor_by_joystick
     };
 }());

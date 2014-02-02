@@ -60,6 +60,15 @@ header {
 	height: 25px;
 }
 
+.no_select {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
 #content {
 	position: relative;
 	top: 42px;
@@ -215,11 +224,66 @@ footer {
 }
 
 .pwm-slider{
-	position: relative;	
+	position: relative;
 	width: 100%;
 	height: 13px;
 }
 
+/* arrowKeys */
+
+#arrowKeys {
+	position: fixed;
+	display: block;
+	width: 50%;
+	height: 70%;
+	right: 0;
+	bottom: 0;
+	margin: 0;
+	padding: 0;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+.arrowKey {
+	position: relative;
+	display: inline-block;
+	background: #e4e4e4;
+	background-repeat: no-repeat;
+	background-position: left top;
+	width: 30%;
+	margin: 1%;
+	height: 38%;
+	text-align: center;
+	line-height: 120px;
+	font-size: 4em;
+}
+#up {
+	margin: 1% 33%;
+}
+#angle {
+	position: fixed;
+	display: block;
+	height: 10%;
+	right: 2%;
+	bottom: 2%;
+	font-size: 2em;
+	color: red;
+}
+
+#joystick {
+	height: 300px;
+	display: block;
+}
+
+#joystick_options {
+	display: block;
+	position: absolute;
+	top: 12%;
+}
 
 /* Start Sprite Master CSS */
 .bulb,.bullet_black,.bullet_blue,.bullet_delete,.bullet_error,.bullet_green,.bullet_orange,.bullet_red,.bullet_white,.bullet_wrench,.bullet_yellow,.calculator_black,.calculator,.caution_high_voltage,.cctv_camera,.cooler,.diagramm,.error,.exclamation,.lightbulb_off,.lightbulb,.no_requirements,.pi_math,.sprite{display: inline-block;background-repeat: no-repeat;background-image: url('../img/sprite.png');}

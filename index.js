@@ -4,7 +4,9 @@ var express = require('express'),
 	io = require('socket.io').listen(server),
 	gpio = require('pi-gpio'),
 	pins = require('./libs/gpio-pins2'),
-	static_dir = __dirname+'/static/';
+	servo = require('./libs/servo'),
+	static_dir = __dirname+'/static/',
+	p_now = require("performance-now");
 	
 	//TODO! users to modules
 	/*
@@ -16,9 +18,24 @@ var express = require('express'),
 	}
 	*/
 	server.listen(2013);
-	console.log("Server started at:		http://192.168.1.184:2013/");
+	console.log("Server started at:		http://192.168.1.45:2013/");
 
 	//pins.initPins();
+	pins.initBrushedMotor(7,11,16,18);
+	//servo.servoHover({"motor":1,"on":true,"step":1,"speed":700});
+	//servo.servoHover({"motor":2,"on":true,"step":5,"speed":1200});
+
+/*
+	pins.openDigitalOut(13,function() {
+		setInterval(function() {
+			var start = p_now();
+			pins.triggerPin(13, function() {
+				var end = p_now();
+				console.log((start-end).toFixed(3));
+			});
+		}, 500);
+	});
+*/
 	
 	app.get('/', function(req,res){
 		res.sendfile(static_dir + 'index.html');
@@ -50,7 +67,7 @@ var express = require('express'),
 		});
 		
 		socket.on('close gpios', function(data) {
-			pins.closePins();
+			//pins.closePins();
 			socket.emit('changed gpio data', pins); //send to all client
 		});
 	
@@ -79,6 +96,17 @@ var express = require('express'),
 			socket.broadcast.emit('broadcast(): client ' + socket.id + ' joined room ' + room);
 	
 		});
+
+		/* python api */
+
+		socket.on('distanceCm',function(distance) {
+			console.log(distance);
+		});
+//
+//		setInterval(function() {
+//			console.log('get_distance');
+//			socket.emit('get_distance');
+//		}, 2500);
 
 		/* gpio-s */
 
@@ -129,12 +157,18 @@ var express = require('express'),
 			//socket.emit('gpioChanged',{"pin":data.pin,"pin_data":pins.pins[data.pin]});
 		});
 
+		socket.on('servoHover',function(data) {
+			pins.servoHover(data);
+		});
+
 		socket.on('changePwmPin',function(data) {
 			console.log("changePwm data:",data);
 			if(data.slider_mode == "1"){
 				pins.pwm({"pin":parseInt(data.pin,10),"pin_value":data.pin_value}, function() {});
 			} else if (data.slider_mode == "2") {
-				pins.digitalPulse(data.pin,data.pin_value);
+				// servo ~0.14 - ~0.27
+				pins.pwm({"pin":parseInt(data.pin,10),"pin_value":data.pin_value}, function() {});
+				//pins.digitalPulse(data.pin,data.pin_value);
 			}
 			//console.log('changePwmPin', data);
 			socket.broadcast.emit('sliderChanged',{"pin":data.pin,"pin_value":data.pin_value});
@@ -146,6 +180,21 @@ var express = require('express'),
 				pins.pins[dt.pin]['on'] = true;		
 				socket.emit('init gpio data', pins['pins']);
 			});
+		});
+		socket.on('goMotorAngle',function(dt) {
+			pins.setBrushedMotor(true, dt.angle);
+		});
+		socket.on('stopMotorAngle',function(dt) {
+			pins.setBrushedMotor(false, dt.angle);
+		});
+		socket.on("changeJoystick",function(dt) {
+			var motor_data;
+			//motor_data = pins.setBrushedMotorByJoystick(dt.mov_X,dt.mov_Y);
+			motor_data = servo.setServoByJoystick(dt.mov_X,dt.mov_Y);
+			console.log(motor_data);
+			if (typeof motor_data != "undefined") {
+				socket.broadcast.emit("joystickChanged",motor_data);
+			}
 		});
 		
 		socket.on('startMotor',function(dt){

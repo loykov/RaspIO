@@ -186,6 +186,7 @@ jQuery(function($){
 			$(".reverseMotor").click(function() {
 				socket.emit('reverseMotor', true);
 			});
+			/*
 			$(".moveUp").click(function() {
 				socket.emit('motorForward', true);
 			});
@@ -198,7 +199,7 @@ jQuery(function($){
 			$(".moveDown").click(function() {
 				socket.emit('motorBackward', true);
 			});
-			
+			*/
 			$("#motorSpeed").on('change',function() {
 				var speed = $(this).val();
 				socket.emit('setMotorSpeed',speed);
@@ -207,11 +208,25 @@ jQuery(function($){
 		} else if (siteName == "joystick") {
 			var joystick = document.getElementById("joystick");
 			var mov_X,mov_Y,mov_A,mov_B,mov_C,mov_D = 0;
+			var angle;
+			var $angle = $("#angle");
+			$(".arrowKey").on("click",function() {
+				angle = $(this).attr("id");
+				socket.emit('goMotorAngle',{angle:angle});
+				$(this).css("background", "#34fe37");
+			});
+			$(".arrowKey").on("release",function(event) {
+				angle = $(this).attr("id");
+				socket.emit('stopMotorAngle',{angle:angle});
+				$(this).css("background", "#e4e4e4");
+			});
 			$(document).on("keypress",function(event) {
+				
 				mov_A = 0;
 				mov_B = 0;
 				mov_C = 0;
 				mov_D = 0;
+				angle = undefined;
 				switch (event.keyCode) {
 					case "38":
 					case 115:
@@ -235,11 +250,16 @@ jQuery(function($){
 					break;
 					
 				}
-				console.log(mov_A,mov_B,mov_C,mov_D);
+				console.log(event.keyCode,mov_B,mov_C,mov_D);
+				if(typeof angle !== undefined ) {
+					socket.emit('goMotor',{angle:angle});
+				}
+				/*
 				socket.emit('changePwmPin',{pin_value:mov_A,pin:7,slider_mode:1});
 				socket.emit('changePwmPin',{pin_value:mov_B,pin:11,slider_mode:1});
 				socket.emit('changePwmPin',{pin_value:mov_C,pin:16,slider_mode:1});
 				socket.emit('changePwmPin',{pin_value:mov_D,pin:18,slider_mode:1});
+				*/
 			});
 			$(document).on("keyup",function(event) {
 				console.log(event);
@@ -248,10 +268,13 @@ jQuery(function($){
 				socket.emit('changePwmPin',{pin_value:0,pin:16,slider_mode:1});
 				socket.emit('changePwmPin',{pin_value:0,pin:18,slider_mode:1});
 			});
-			var hammertime = Hammer(joystick).on("touch", function(event) {
-				mov_X = event.gesture.deltaX;
-				mov_Y = event.gesture.deltaY;
-				if(Math.abs(mov_X) > 200) {
+			var hammertime = Hammer(joystick).on("drag", function(event) {
+				console.log(event.gesture);
+				mov_X = parseInt(event.gesture.deltaX,10);
+				mov_Y = parseInt(event.gesture.deltaY,10);
+				console.log(mov_X,mov_Y);
+				socket.emit("changeJoystick",{mov_X:mov_X,mov_Y:mov_Y});
+				/*if(Math.abs(mov_X) > 200) {
 					if (mov_X > 0){
 						mov_X = 200;
 					} else {
@@ -300,12 +323,15 @@ jQuery(function($){
 				socket.emit('changePwmPin',{pin_value:mov_B,pin:11,slider_mode:1});
 				socket.emit('changePwmPin',{pin_value:mov_C,pin:16,slider_mode:1});
 				socket.emit('changePwmPin',{pin_value:mov_D,pin:18,slider_mode:1});
+				*/
 				$("#mov_Y").html(mov_Y);
 				$("#mov_X").html(mov_X);
-				$("#mov_A").html(mov_A);
-				$("#mov_B").html(mov_B);
-				$("#mov_C").html(mov_C);
-				$("#mov_D").html(mov_D);
+			});
+			socket.on('joystickChanged',function(dt) {
+				$("#mov_A").html(dt.mov_A);
+				$("#mov_B").html(dt.mov_B);
+				//$("#mov_C").html(dt.mov_C);
+				//$("#mov_D").html(dt.mov_D);
 			});
 			var hammertime2 = Hammer(joystick).on("release",function(event) {
 				socket.emit('changePwmPin',{pin_value:0,pin:7,slider_mode:1});
