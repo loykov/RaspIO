@@ -24,7 +24,7 @@ module.exports = (function(){
 		}
 	};
 	
-	new Array(22,12);
+	//new Array(22,12);
 	
 	var servoHover = function(data) {
 		if(data.on){

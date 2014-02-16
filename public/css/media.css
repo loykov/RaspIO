@@ -1,0 +1,23 @@
+#content {
+	margin-top: 52px;
+}
+
+#musicPlayer {
+	display: none;
+}
+
+#musicPlay {
+	background: url('../img/ico/glyphicons_173_play.png') left top no-repeat;
+	width: 22px;
+	height: 22px;
+	display: inline-block;
+}
+#musicStop {
+	background: url('../img/ico/glyphicons_175_stop.png') left top no-repeat;
+	width: 22px;
+	height: 22px;
+	display: inline-block;
+}
+.musicName {
+	color: #fefefe;
+}

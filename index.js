@@ -1,12 +1,35 @@
 var express = require('express'),
 	app = express(),
+	fs = require('fs'),
 	server = require('http').createServer(app),
 	io = require('socket.io').listen(server),
 	gpio = require('pi-gpio'),
 	pins = require('./libs/gpio-pins2'),
 	servo = require('./libs/servo'),
 	static_dir = __dirname+'/static/',
-	p_now = require("performance-now");
+	public_dir = __dirname+'/public/',
+	p_now = require("performance-now"),
+	media_folder_usb = "public/usb_emulator/",
+	media_folder_local = "public/storage/",
+	media_depth = new Array();
+	/*,
+	mysql = require('mysql').createConnection({
+	  host     : 'localhost',
+	  user     : 'root',
+	  password : '',
+	  database: 'raspberrypi'
+	});
+	
+	mysql.connect();
+	mysql.query('SELECT * FROM files AS solution', function(err, rows, fields) {
+	  if (err) throw err;
+	
+	  console.log('The solution is: ', rows[0].solution);
+	});
+	mysql.end();
+	
+	
+	//"public/usb/Media/"
 	
 	//TODO! users to modules
 	/*
@@ -36,9 +59,19 @@ var express = require('express'),
 		}, 500);
 	});
 */
-	
+
 	app.get('/', function(req,res){
+		res.sendfile(static_dir + 'videoo.html');
+		console.log("Client connected!");
+	});
+	
+	app.get('/gpio', function(req,res){
 		res.sendfile(static_dir + 'index.html');
+		console.log("Client connected!");
+	});
+	
+	app.get('/usbstore', function(req,res){
+		res.sendfile(static_dir + 'media.html');
 		console.log("Client connected!");
 	});
 	
@@ -56,10 +89,63 @@ var express = require('express'),
 	app.get('/header.html', function(req,res){
 		res.sendfile(static_dir + '/header.html');
 	});
-		
+
+	function getExtension(filename) {
+	    var i = filename.lastIndexOf('.');
+	    return (i < 0) ? '' : filename.substr(i+1);
+	}
+
 	io.sockets.on('connection', function(socket){
 		//users[users.length] = new User(socket);
 		//console.log(users);
+		
+		socket.on('getFileList', function(data) {
+			if(typeof data.path != "undefined"){
+				media_depth = data.path.split("/");
+				var media_folder = media_folder_usb;
+				if(data.drive == "USB") {
+					media_folder = media_folder_usb;					
+				} else if (data.drive == "SD") {
+					media_folder = media_folder_local;
+				}
+				fs.exists(media_folder+data.path, function(path_exists) {
+					if(path_exists){
+						fs.readdir(media_folder+data.path, function(err, files) {
+							var files_data = new Array();
+							for (file in files) {
+								console.log(files[file]);
+								var file_path;
+								var public_file_path;
+								if (media_folder+data.path == media_folder) {
+									file_path = media_folder+data.path+files[file];
+								} else {
+									file_path = media_folder+data.path+"/"+files[file];
+								}
+								console.log("file path:",file_path);
+								var file_data = {
+									"name": files[file],
+									"path": file_path,
+									"public_path": file_path.substr(7),
+									"is_dir": fs.lstatSync(file_path).isDirectory(file_path),
+									"is_file": fs.lstatSync(file_path).isFile(file_path),
+									"ext": getExtension(files[file])
+								};
+								files_data.push(file_data);
+							}
+							var send_data = {	
+							"files":files,
+							"files_data": files_data,
+							"depth":media_depth.length,
+							"path": data.path
+							};
+							socket.emit('dataFileList',send_data, function() {
+								console.log();
+							})
+						});
+					}
+				});
+			}
+		});
 		
 		socket.on('init gpio', function(data) {
 			socket.emit('init gpio data', pins['pins']); //send to all client
