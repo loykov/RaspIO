@@ -5,7 +5,7 @@ var site = {
 		console.log("initSite");
 		this.$loading = $("#loading");
 		$("header").load(this.templates+"media_menu.html",this.initMenu);
-		this.changeMenu("dashboardmedia");
+		this.changeMenu("media");
 	},
 	initMenu: function(){
 		$(".menu").click(site.clickMenu);
@@ -110,6 +110,7 @@ $(function() {
 				}
 				if (data.files_data[elem]["is_file"]) {
 					$li.addClass("is_file btn btn-primary btn-block");
+					$li.css("width : 25%");
 					$li.addClass("file_ext_"+data.files_data[elem]["ext"]);
 					$li.data("ext", data.files_data[elem]["ext"]);
 					$li.data("path", data.files_data[elem]["public_path"]);
