@@ -1,4 +1,3 @@
-console.log("asd");
 var site = {
 	active_menu : "",
 	templates: "template/",
@@ -45,7 +44,7 @@ var site = {
 		
 		},
 		media: function(){
-			$("#container").trigger('siteChange', ["media"]);
+			$("#fl_container").trigger('siteChange', ["media"]);
 		},
 		music: function() {
 		
@@ -59,18 +58,33 @@ $(function() {
 	var $body = $("body");
 	var $fl_container = $("#fl_container");
 	var $file_list = $("#file_list");
+	var $path = $("#path");
 	function getFileList(path) {
 		current_path = path;
 		var drive_name = $("#drive_name").value;
 		socket.emit("getFileList",{"path":current_path,"drive":drive_name});
 	}
+	function addPath(dt,act_path) {
+		console.log("addPath. dt: ",dt);
+		$path = $("#path");
+		var $path_elem = $("<label />");
+		$path_elem.addClass("btn btn-primary");
+		$path_elem.data("path",dt.path);
+		$path_elem.append("<span class='glyphicon glyphicon-folder-open'></span> "+dt.name);
+		$path_elem.click(function() {
+			$(this).nextAll("label").remove();
+			getFileList(act_path);
+		});
+		$path.append($path_elem);
+	}
 	socket.on("dataFileList", function(data) {
 		console.log(data);
 		$file_list.html("");
 		$file_list = $("#file_list");
+		/*
 		if(current_path != ""){
 			$file_list.append("<li class='dotdot'><span class='glyphicon glyphicon-folder-close'></span> ..</li>");
-		}
+		}*/
 		$.each(data.files_data,function(elem) {
 			var $li = $("<li />");
 			var $elem_icon = $("<span />");
@@ -84,16 +98,18 @@ $(function() {
 				}
 				$li.on("click",function() {
 					console.log(data.files_data[elem]["is_file"]);
+					console.log("act_path: ",act_path,data.files_data[elem]);
 					if(data.files_data[elem]["is_dir"]){
+						addPath(data.files_data[elem],act_path);
 						getFileList(act_path);
 					}
 				});
-				if(data.files_data[elem]["is_dir"]){
-					$li.addClass("is_dir");
+				if(data.files_data[elem]["is_dir"] || !data.files_data[elem]["is_file"]){
+					$li.addClass("is_dir btn btn-warning btn-block");
 					$elem_icon.addClass("glyphicon-folder-open");
 				}
 				if (data.files_data[elem]["is_file"]) {
-					$li.addClass("is_file");
+					$li.addClass("is_file btn btn-primary btn-block");
 					$li.addClass("file_ext_"+data.files_data[elem]["ext"]);
 					$li.data("ext", data.files_data[elem]["ext"]);
 					$li.data("path", data.files_data[elem]["public_path"]);
@@ -125,7 +141,6 @@ $(function() {
 				$li.append($elem_icon);
 				$li.append(" <span class='file_name'>"+data.files_data[elem]["name"]+"</span>");
 			}
-			console.log($li);
 			$file_list.append($li);
 		});
 	});
@@ -135,6 +150,7 @@ $(function() {
 	});
 	$home_tr = $("#home_tree");
 	$(document).on("click","#home_tree",function() {
+		$(this).nextAll("label").remove();
 		current_path = "";
 		getFileList(current_path);
 	});
@@ -200,4 +216,12 @@ $(function() {
 	});
 	function drawTree() {};
 	site.initSite();
+	$(document).on('siteChange','#fl_container',function(event, siteName){
+		console.log("siteChange event",siteName);
+		socket.emit('init gpio', true);
+		if(siteName == "media") {
+			console.log("media menu");
+			getFileList("");
+		}
+	});
 });

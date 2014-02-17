@@ -2,10 +2,11 @@
 	<option value="USB">USBstick</option>
 	<option value="SD">microSD</option>
 </select>
-<button id="refresh" class="btn btn-default"><span class="glyphicon glyphicon-refresh"></span>REFRESH!</button>
-<button id="home_tree" class="btn btn-success"><span class="glyphicon glyphicon-home"></span>HOME!</button>
-<button class="dotdot btn btn-default">..</button>
-
+<div id="path" class="btn-group">
+	<label class="btn btn-default" id="refresh"><span class="glyphicon glyphicon-refresh"></span></label>
+	<label class="btn btn-primary" id="home_tree"><span class="glyphicon glyphicon-home"></span></label>
+	<!--<label class="btn btn-primary" id="path_0" data-path=""><span class="glyphicon glyphicon-folder-open"> public</span></label>-->
+</div>
 <div id="fl_container">
 	<ul id="file_list">
 	</ul>
